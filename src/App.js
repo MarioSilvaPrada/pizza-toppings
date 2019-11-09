@@ -3,9 +3,14 @@ import './App.css';
 import axios from 'axios';
 
 function App() {
+  // all Combinations
+  const [ combinations, setCombinations ] = useState('');
+  // all toppings
   const [ toppings, setToppings ] = useState('');
 
-  const [ combinations, setCombinations ] = useState('');
+  // sorted Combinations
+  const [ sortCombinations, setSortCombinations ] = useState('');
+  // sorted Toppings
   const [ rankIngredients, setRankIngredients ] = useState('');
 
   useEffect(() => {
@@ -15,8 +20,7 @@ function App() {
   const getData = async () => {
     const result = await axios.get('http://files.olo.com/pizzas.json');
 
-    setToppings(result.data);
-
+    // Insert all combinations toppings in an array
     let combinations = [];
 
     result.data.map((topping) => {
@@ -25,8 +29,9 @@ function App() {
       }
     });
 
+    // count ordered combiantions
     let numCombination = {};
-
+    
     combinations.map((el) => {
       if (numCombination[el]) {
         numCombination[el]++;
@@ -35,12 +40,16 @@ function App() {
       }
     });
 
+    setCombinations(numCombination);
+
+    // Sort this combinations toppings object
     let sortCombination = Object.keys(numCombination).sort((a, b) => {
       return numCombination[b] - numCombination[a];
     });
 
-    setCombinations(sortCombination);
+    setSortCombinations(sortCombination);
 
+    // count ordered toppings
     let ranking = {};
     result.data.map((topping) => {
       if (topping.toppings.length > 1) {
@@ -52,23 +61,34 @@ function App() {
       }
     });
 
+    setToppings(ranking);
+
     // sort topping by order amount
     let sortTopping = Object.keys(ranking).sort((a, b) => {
       return ranking[b] - ranking[a];
     });
     setRankIngredients(sortTopping);
-    console.log(sortTopping);
   };
 
   return (
-    toppings &&
     rankIngredients &&
-    combinations && (
+    sortCombinations && (
       <div className='App'>
-        <h1>Top order toppings:</h1>
-        {rankIngredients.map((ing, i) => i > 0 && <p key={i}>{ing}</p>)}
-        <h1>Top order combinations:</h1>
-        {combinations.map((comb, i) => <p key={i}>{comb}</p>)}
+        <h1>Top ordered toppings:</h1>
+        {rankIngredients.map(
+          (ing, i) =>
+            i > 0 && (
+              <p key={i}>
+                {ing}: <b>{toppings[ing]} orders</b>
+              </p>
+            ),
+        )}
+        <h1>Top ordered combinations:</h1>
+        {sortCombinations.map((comb, i) => (
+          <p key={i}>
+            {comb}: <b>{combinations[comb]} orders</b>
+          </p>
+        ))}
       </div>
     )
   );
